@@ -6,7 +6,7 @@ function isEmpty(inputEl) {
 }
 
 function isValidEmail(email) {
-  const pattern = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+  const pattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return pattern.test(email.trim());
 }
 
@@ -14,9 +14,17 @@ function showError(inputEl, errorEl) {
   if (errorEl) {
     errorEl.classList.remove("hidden");
   }
-
   if (inputEl.hasAttribute("aria-invalid")) {
     inputEl.setAttribute("aria-invalid", "true");
+  }
+}
+
+function hideError(inputEl, errorEl) {
+  if (errorEl) {
+    errorEl.classList.add("hidden");
+  }
+  if (inputEl.hasAttribute("aria-invalid")) {
+    inputEl.setAttribute("aria-invalid", "false");
   }
 }
 
@@ -64,6 +72,50 @@ const validationRules = [
     validate: (input) => input.checked,
   },
 ];
+
+validationRules.forEach((rule) => {
+  if (rule.input) {
+    if (rule.input.type !== "radio" && rule.input.type !== "checkbox") {
+      rule.input.addEventListener("input", () => {
+        if (rule.validate(rule.input)) {
+          hideError(rule.input, rule.errorElement);
+        } else {
+          showError(rule.input, rule.errorElement);
+        }
+      });
+      rule.input.addEventListener("blur", () => {
+        if (rule.validate(rule.input)) {
+          hideError(rule.input, rule.errorElement);
+        } else {
+          showError(rule.input, rule.errorElement);
+        }
+      });
+    }
+
+    if (rule.input.type === "radio") {
+      const radioGroup = form.querySelectorAll("input[name='query-type']");
+      radioGroup.forEach((radio) => {
+        radio.addEventListener("change", () => {
+          if (rule.validate()) {
+            hideError(rule.input, rule.errorElement);
+          } else {
+            showError(rule.input, rule.errorElement);
+          }
+        });
+      });
+    }
+
+    if (rule.input.type === "checkbox") {
+      rule.input.addEventListener("change", () => {
+        if (rule.validate(rule.input)) {
+          hideError(rule.input, rule.errorElement);
+        } else {
+          showError(rule.input, rule.errorElement);
+        }
+      });
+    }
+  }
+});
 
 form.addEventListener("submit", (e) => {
   e.preventDefault();
